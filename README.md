@@ -8,5 +8,6 @@ Tugas 2 <br/>
 3. Halaman Transaksi : https://eventamikom-3327-main-8ohvqd.free.laravel.cloud/admin/transactions <br/>
 4. Halaman Beranda : https://eventamikom-3327-main-8ohvqd.free.laravel.cloud/ <br/>
 5. Halaman Detail Event : https://eventamikom-3327-main-8ohvqd.free.laravel.cloud/event/1 <br/>
-6. Halaman Checkout : https://eventamikom-3327-main-8ohvqd.free.laravel.cloud/checkout
+6. Halaman Checkout : https://eventamikom-3327-main-8ohvqd.free.laravel.cloud/checkout <br/>
+Tugas 3 : Menambahkan database migration/seeding
 

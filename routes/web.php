@@ -43,7 +43,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     
     // Kelola Event
-    Route::get('/events', [AdminEventController::class, 'index'])->name('events.index');
+    // Route::get('/events', [AdminEventController::class, 'index'])->name('events.index');
+    Route::resource('events', AdminEventController::class);
     
     // Laporan Transaksi
     Route::get('/transactions', [DashboardController::class, 'transactions'])->name('transactions.index');

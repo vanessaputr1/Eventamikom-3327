@@ -1,15 +1,11 @@
 <?php
 
-
 namespace App\Models;
-
 
 use Illuminate\Database\Eloquent\Model;
 
-
 class Event extends Model
 {
-    //
     protected $fillable = [
         'category_id',
         'title',
@@ -21,6 +17,9 @@ class Event extends Model
         'poster_path'
     ];
 
+    protected $casts = [
+        'date' => 'datetime',
+    ];
 
     public function category()
     {

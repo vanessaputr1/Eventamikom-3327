@@ -1,4 +1,4 @@
-@extends('layouts.app')
+<!-- @extends('layouts.app')
 
 @section('content') 
 
@@ -139,4 +139,4 @@
         animation: bounce-in 0.4s ease-out forwards;
     }
 </style>
-@endsection
+@endsection -->

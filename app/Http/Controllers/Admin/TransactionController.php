@@ -3,24 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\Transaction;
 
-class DashboardController extends Controller
+class TransactionController extends Controller
 {
     public function index()
     {
-        return view('admin.dashboard');
-    }
-
-    public function transactions()
-    {
+        // Mengambil transaksi terbaru dengan pembatasan 20 baris per halaman
         $transactions = Transaction::with('event')
             ->latest()
             ->paginate(20);
 
-        return view(
-            'admin.transactions.index',
-            compact('transactions')
-        );
+        return view('admin.transactions.index', compact('transactions'));
     }
 }

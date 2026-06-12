@@ -29,7 +29,7 @@
 
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Login Admin</h1>
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Login Admin AmikomHub</h1>
             <p class="text-slate-500 font-medium">Masuk ke dashboard admin</p>
         </div>
 

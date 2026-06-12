@@ -16,7 +16,7 @@
     <div class="w-full max-w-md relative z-10">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Daftar Admin</h1>
+            <h1 class="text-4xl font-extrabold text-slate-900 mb-2">Daftar Admin AmikomHub</h1>
             <p class="text-slate-500 font-medium">Buat akun admin baru</p>
         </div>
 

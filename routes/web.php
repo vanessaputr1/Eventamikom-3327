@@ -28,6 +28,8 @@ Route::get('/checkout/{event}', [CheckoutController::class, 'create'])
 
 Route::post('/checkout/{event}', [CheckoutController::class, 'store'])
     ->name('checkout.store');
+Route::get('/payment/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
+Route::get('/success/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
 
 // My Ticket
 Route::get('/my-ticket', [TicketController::class, 'show'])

@@ -14,4 +14,5 @@ Tugas 3 : Menambahkan database migration/seeding <br/>
 Tugas 4 : Halaman Kelola Event : https://eventamikom-3327-main-8ohvqd.free.laravel.cloud/admin/events <br/>
 Tugas 8 : authentication (login dan register admin) <br/>
 Tugas 10 : menampilkan FE event, detail event, dan mencoba checkout Serta menu navigasi transaksi pada panel admin <br/>
-Tugas 11 : integrasi midtrans 
+Tugas 11 : integrasi midtrans <br/>
+Tugas 12 : HANDLING WEBHOOK & DASHBOARD ADMIN (laporan transaksi)

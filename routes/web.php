@@ -35,6 +35,8 @@ Route::get('/success/{order_id}', [\App\Http\Controllers\CheckoutController::cla
 Route::get('/my-ticket', [TicketController::class, 'show'])
     ->name('ticket');
 
+Route::post('/midtrans/callback', [\App\Http\Controllers\MidtransWebhookController::class, 'handle']);
+
 /*
 |--------------------------------------------------------------------------
 | Admin Authentication

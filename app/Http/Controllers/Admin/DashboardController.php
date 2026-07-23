@@ -50,70 +50,34 @@ class DashboardController extends Controller
             ->get();
 
         /*
-        |--------------------------------------------------------------------------
-        | Grafik User
-        |--------------------------------------------------------------------------
-        */
+|--------------------------------------------------------------------------
+| Grafik User
+|--------------------------------------------------------------------------
+*/
+
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'pgsql') {
+            $monthSql = "EXTRACT(MONTH FROM created_at)";
+        } else {
+            $monthSql = "MONTH(created_at)";
+        }
 
         $userChart = User::where('role', 'user')
-            ->select(
-                DB::raw('MONTH(created_at) as month'),
-                DB::raw('COUNT(*) as total')
-            )
-            ->groupBy('month')
+            ->selectRaw("$monthSql as month, COUNT(*) as total")
+            ->groupByRaw($monthSql)
             ->orderBy('month')
             ->pluck('total', 'month');
 
         /*
-        |--------------------------------------------------------------------------
-        | Grafik Event
-        |--------------------------------------------------------------------------
-        */
+|--------------------------------------------------------------------------
+| Grafik Event
+|--------------------------------------------------------------------------
+*/
 
-        $eventChart = Event::select(
-            DB::raw('MONTH(created_at) as month'),
-            DB::raw('COUNT(*) as total')
-        )
-            ->groupBy('month')
+        $eventChart = Event::selectRaw("$monthSql as month, COUNT(*) as total")
+            ->groupByRaw($monthSql)
             ->orderBy('month')
             ->pluck('total', 'month');
-
-        $months = [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'Mei',
-            'Jun',
-            'Jul',
-            'Agu',
-            'Sep',
-            'Okt',
-            'Nov',
-            'Des'
-        ];
-
-        $userData = [];
-        $eventData = [];
-
-        for ($i = 1; $i <= 12; $i++) {
-
-            $userData[] = $userChart[$i] ?? 0;
-
-            $eventData[] = $eventChart[$i] ?? 0;
-        }
-
-        return view('admin.dashboard', compact(
-            'totalUsers',
-            'totalEvents',
-            'activeEvents',
-            'pendingOrders',
-            'ticketsSold',
-            'totalRevenue',
-            'recentTransactions',
-            'months',
-            'userData',
-            'eventData'
-        ));
     }
 }

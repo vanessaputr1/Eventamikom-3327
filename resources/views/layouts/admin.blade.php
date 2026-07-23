@@ -13,6 +13,7 @@
         }
     </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <body class="bg-slate-50 text-slate-900 flex min-h-screen">
     <aside class="w-64 bg-indigo-900 text-indigo-100 flex flex-col p-6 space-y-8 sticky top-0 h-screen">
@@ -34,6 +35,12 @@
             </a>
             <a href="{{ route('admin.transactions.index') }}" class="flex items-center gap-3 px-4 py-3 {{ request()->routeIs('admin.transactions.*') ? 'bg-indigo-800 text-white' : '' }} rounded-xl font-bold transition">
                 Kelola Transaksi
+            </a>
+            <a href="{{ route('admin.reviews.index') }}" class="flex items-center gap-3 px-4 py-3 {{ request()->routeIs('admin.reviews.*') ? 'bg-indigo-800 text-white' : '' }} rounded-xl font-bold transition">
+                Kelola Review
+            </a>
+            <a href="{{ route('admin.organizers.index') }}" class="flex items-center gap-3 px-4 py-3 {{ request()->routeIs('admin.organizers.*') ? 'bg-indigo-800 text-white' : '' }} rounded-xl font-bold transition">
+                Kelola Organizer
             </a>
         </nav>
 

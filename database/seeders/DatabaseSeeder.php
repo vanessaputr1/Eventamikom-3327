@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Organizer;
 
 class DatabaseSeeder extends Seeder
 {
@@ -21,6 +22,36 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@amikom.ac.id',
             'password' => bcrypt('password'),
             'role' => 'admin',
+        ]);
+        // Organizer
+        // Organizer 1
+        $organizerUser1 = User::create([
+            'name' => 'HIMA Informatika',
+            'email' => 'organizer1@amikom.ac.id',
+            'password' => bcrypt('password'),
+            'role' => 'organizer',
+        ]);
+
+        Organizer::create([
+            'user_id' => $organizerUser1->id,
+            'name' => 'HIMA Informatika',
+            'slug' => 'hima-informatika',
+            'status' => 'approved',
+        ]);
+
+        // Organizer 2
+        $organizerUser2 = User::create([
+            'name' => 'BEM FIK',
+            'email' => 'organizer2@amikom.ac.id',
+            'password' => bcrypt('password'),
+            'role' => 'organizer',
+        ]);
+
+        Organizer::create([
+            'user_id' => $organizerUser2->id,
+            'name' => 'BEM FIK',
+            'slug' => 'bem-fik',
+            'status' => 'approved',
         ]);
 
         // 2. Insert Kategori Event

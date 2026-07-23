@@ -120,7 +120,23 @@
                     </p>
 
                     <h2 class="text-5xl font-black">
-                        Rp {{ number_format($event->price, 0, ',', '.') }}
+                        @if($event->price == 0)
+
+                        <span class="text-green-600 font-bold text-3xl">
+
+                            GRATIS
+
+                        </span>
+
+                        @else
+
+                        <span class="text-white font-bold text-3xl">
+
+                            Rp {{ number_format($event->price,0,',','.') }}
+
+                        </span>
+
+                        @endif
                         <span class="text-lg font-medium text-indigo-200">
                             / orang
                         </span>
@@ -167,6 +183,98 @@
             <div class="absolute -left-10 -top-10 w-32 h-32 bg-indigo-400 opacity-20 rounded-full"></div>
 
         </div>
+
+        <!-- Reviews -->
+        <div class="space-y-6 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">Ulasan Event</h3>
+                    <p class="text-sm text-slate-500">Rata-rata {{ $reviewAverage }} dari {{ $reviewCount }} review</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-3xl font-black text-indigo-600">{{ $reviewAverage }}</p>
+                    <p class="text-xs text-slate-500">Skor rating</p>
+                </div>
+            </div>
+
+            @if($event->reviews->count())
+            <div class="space-y-4">
+                @foreach($event->reviews as $review)
+                <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="font-bold text-slate-800">{{ $review->customer_name ?: 'Pengguna' }}</p>
+                            <p class="text-xs text-slate-500">{{ $review->created_at->format('d M Y') }}</p>
+                        </div>
+                        <div class="text-amber-500 font-bold">{{ str_repeat('★', $review->rating) }}</div>
+                    </div>
+                    <p class="mt-3 text-sm text-slate-600">{{ $review->comment ?: 'Tidak ada komentar.' }}</p>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <p class="text-sm text-slate-500">Belum ada review untuk event ini.</p>
+            @endif
+
+            @if($isReviewAllowed && $hasSuccessfulTransaction)
+            <div class="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
+                <div class="flex items-center justify-between gap-3">
+                    <h4 class="text-lg font-bold text-slate-900">{{ $userReview ? 'Edit Review' : 'Tulis Review' }}</h4>
+                    @if($userReview)
+                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Review sudah ada</span>
+                    @endif
+                </div>
+                <form action="{{ route('events.review', $event->id) }}" method="POST" class="mt-4 space-y-4">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Nama</label>
+                            <input type="text" name="customer_name" value="{{ old('customer_name', $userReview?->customer_name ?? auth()->user()?->name) }}" class="w-full rounded-xl border border-slate-200 px-4 py-3" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Email</label>
+                            <input type="email" name="customer_email" value="{{ old('customer_email', $userReview?->customer_email ?? auth()->user()?->email) }}" class="w-full rounded-xl border border-slate-200 px-4 py-3" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Rating</label>
+                        <select name="rating" class="w-full rounded-xl border border-slate-200 px-4 py-3" required>
+                            <option value="">Pilih rating</option>
+                            @for($i = 1; $i <= 5; $i++)
+                                <option value="{{ $i }}" {{ old('rating', $userReview?->rating) == $i ? 'selected' : '' }}>{{ $i }} Bintang</option>
+                                @endfor
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Komentar</label>
+                        <textarea name="comment" rows="4" class="w-full rounded-xl border border-slate-200 px-4 py-3" placeholder="Berikan ulasan Anda...">{{ old('comment', $userReview?->comment) }}</textarea>
+                    </div>
+                    <button type="submit" class="rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white">{{ $userReview ? 'Perbarui Review' : 'Kirim Review' }}</button>
+                </form>
+            </div>
+            @endif
+        </div>
+        @if(!$isReviewAllowed)
+        <div class="rounded-2xl border border-yellow-200 bg-yellow-50 p-5">
+            <p class="font-bold text-yellow-800">
+                Review belum dapat diberikan.
+            </p>
+
+            <p class="mt-2 text-sm text-yellow-700">
+                Review hanya dapat diberikan mulai <strong>H+1 setelah event selesai</strong>.
+            </p>
+        </div>
+        @elseif(!$hasSuccessfulTransaction)
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-5">
+            <p class="font-bold text-red-700">
+                Anda belum dapat memberikan review.
+            </p>
+
+            <p class="mt-2 text-sm text-red-600">
+                Review hanya dapat diberikan oleh peserta yang telah membeli tiket dengan pembayaran berhasil.
+            </p>
+        </div>
+        @endif
 
         <!-- Ticket Policy -->
         <div class="space-y-4">

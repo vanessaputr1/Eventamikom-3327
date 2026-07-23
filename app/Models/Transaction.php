@@ -8,6 +8,7 @@ class Transaction extends Model
 {
     protected $fillable = [
         'event_id',
+        'organizer_id',
         'order_id',
         'customer_name',
         'customer_email',
@@ -20,5 +21,15 @@ class Transaction extends Model
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function organizer()
+    {
+        return $this->belongsTo(Organizer::class);
+    }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class, 'event_id', 'event_id');
     }
 }

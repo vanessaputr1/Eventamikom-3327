@@ -48,14 +48,12 @@ class AuthController extends Controller
             ]);
         }
 
-        // Cek apakah user adalah admin
         if ($user->role !== 'admin') {
             throw ValidationException::withMessages([
-                'email' => 'Akses ditolak. Anda bukan admin.',
+                'email' => 'Akses ditolak. Anda bukan superadmin.',
             ]);
         }
 
-        // Login user
         Auth::login($user, $request->boolean('remember'));
 
         return redirect()->route('admin.dashboard');
@@ -93,7 +91,6 @@ class AuthController extends Controller
             'agree.accepted' => 'Anda harus menyetujui syarat & ketentuan',
         ]);
 
-        // Buat user baru dengan role admin
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
@@ -102,8 +99,7 @@ class AuthController extends Controller
             'role' => 'admin',
         ]);
 
-        // Redirect ke login dengan pesan sukses
-        return redirect()->route('admin.login')->with('success', 'Akun berhasil dibuat! Silahkan login dengan email dan password Anda.');
+        return redirect()->route('admin.login')->with('success', 'Akun superadmin berhasil dibuat! Silahkan login dengan email dan password Anda.');
     }
 
     /**

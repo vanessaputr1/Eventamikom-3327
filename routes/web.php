@@ -5,12 +5,20 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\PartnerController as AdminPartnerController;
+use App\Http\Controllers\Admin\OrganizerController as AdminOrganizerController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
-
+use App\Http\Controllers\Organizer\AuthController as OrganizerAuthController;
+use App\Http\Controllers\Organizer\DashboardController as OrganizerDashboardController;
+use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
+use App\Http\Controllers\Organizer\TransactionController as OrganizerTransactionController;
+use App\Http\Controllers\Organizer\ReviewController as OrganizerReviewController;
+use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
 /*
 |--------------------------------------------------------------------------
 | User Area
@@ -21,6 +29,24 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/event/{event}', [EventController::class, 'show'])
     ->name('events.show');
+
+Route::post('/event/{event}/review', [EventController::class, 'storeReview'])
+    ->name('events.review');
+
+Route::get('/login', [UserAuthController::class, 'showLogin'])
+    ->name('login');
+
+Route::post('/login', [UserAuthController::class, 'login'])
+    ->name('user.login.post');
+
+Route::get('/login/google', [UserAuthController::class, 'redirectToGoogle'])
+    ->name('user.login.google');
+
+Route::get('/login/google/callback', [UserAuthController::class, 'handleGoogleCallback'])
+    ->name('user.login.google.callback');
+
+Route::post('/logout', [UserAuthController::class, 'logout'])
+    ->name('user.logout');
 
 // Checkout
 Route::get('/checkout/{event}', [CheckoutController::class, 'create'])
@@ -65,6 +91,43 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         ->name('logout');
 });
 
+Route::group(['prefix' => 'organizer', 'as' => 'organizer.'], function () {
+    Route::get('/login', [OrganizerAuthController::class, 'showLogin'])
+        ->name('login');
+
+    Route::post('/login', [OrganizerAuthController::class, 'login'])
+        ->name('login.post');
+
+    Route::post('/logout', [OrganizerAuthController::class, 'logout'])
+        ->name('logout');
+});
+
+Route::group([
+    'prefix' => 'organizer',
+    'as' => 'organizer.',
+    'middleware' => 'organizer'
+], function () {
+    Route::get('/dashboard', [OrganizerDashboardController::class, 'index'])
+        ->name('dashboard');
+
+    Route::resource('events', OrganizerEventController::class);
+
+    Route::get('/transactions', [OrganizerTransactionController::class, 'index'])
+        ->name('transactions.index');
+
+    Route::get('/reviews', [OrganizerReviewController::class, 'index'])
+        ->name('reviews.index');
+
+    Route::get('/profile', [OrganizerProfileController::class, 'index'])
+    ->name('profile');
+    
+    Route::get('/register', [OrganizerAuthController::class, 'showRegister'])
+        ->name('register');
+
+    Route::post('/register', [OrganizerAuthController::class, 'register'])
+        ->name('register.post');
+});
+
 /*
 |--------------------------------------------------------------------------
 | Admin Area
@@ -95,4 +158,16 @@ Route::group([
     // Laporan Transaksi
     Route::get('/transactions', [DashboardController::class, 'transactions'])
         ->name('transactions.index');
+
+    Route::get('/organizers', [AdminOrganizerController::class, 'index'])
+        ->name('organizers.index');
+
+    Route::put('/organizers/{organizer}', [AdminOrganizerController::class, 'update'])
+        ->name('organizers.update');
+
+    Route::get('/reviews', [AdminReviewController::class, 'index'])
+        ->name('reviews.index');
+
+    Route::patch('/reviews/{review}/moderate', [AdminReviewController::class, 'moderate'])
+        ->name('reviews.moderate');
 });

@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 
 //
 use App\Models\Event;
@@ -17,7 +17,13 @@ use Illuminate\Support\Facades\Storage;
 class EventController extends Controller
 {
    public function index() {
-        $events = Event::with('category')->latest()->get();
+        $query = Event::with('category')->latest();
+
+        // if (Auth::user()?->role === 'organizer') {
+        //     $query->where('organizer_id', Auth::user()->organizer?->id);
+        // }
+
+        $events = $query->get();
         return view('admin.events.index', compact('events'));
     }
 
@@ -45,6 +51,7 @@ class EventController extends Controller
             $data['poster_path'] = $request->file('poster')->store('posters', 'public');
         }
 
+        $data['organizer_id'] = Auth::user()?->organizer?->id;
 
         Event::create($data);
         return redirect()->route('admin.events.index')->with('success', 'Event berhasil dibuat.');

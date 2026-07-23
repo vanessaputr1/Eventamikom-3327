@@ -5,13 +5,22 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
     public function create(Event $event)
     {
-        // Mengambil daftar kategori untuk keperluan menu footer
+        if (!Auth::check()) {
+            return redirect()->route('login', ['redirect' => route('checkout.create', $event)]);
+        }
+
+        if (Auth::user()->role !== 'user') {
+            Auth::logout();
+            return redirect()->route('login', ['redirect' => route('checkout.create', $event)]);
+        }
+
         $categories = \App\Models\Category::all();
 
         return view('checkout.create', compact('event', 'categories'));
@@ -19,14 +28,12 @@ class CheckoutController extends Controller
 
     public function store(Request $request, Event $event)
     {
-        // 1. Validasi Input Kredensial Pelanggan
         $request->validate([
             'customer_name'  => 'required|string|max:255',
             'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:20',
         ]);
 
-        // 2. Cegah Check-out Jika Tiket Habis
         if ($event->stock <= 0) {
             return back()->with(
                 'error',
@@ -34,31 +41,58 @@ class CheckoutController extends Controller
             );
         }
 
-        // 3. Generate Kode TRX (Unik)
         $orderId = 'TRX-' . time() . '-' . Str::random(5);
-        $totalPrice = $event->price + 5000; // Menambahkan biaya admin (dummy)
 
-        // 4. Merekam Transaksi ke Database
+        /*
+    |--------------------------------------------------------------------------
+    | EVENT GRATIS
+    |--------------------------------------------------------------------------
+    */
+
+        if ($event->price == 0) {
+
+            $transaction = Transaction::create([
+                'event_id'        => $event->id,
+                'organizer_id'    => $event->organizer_id,
+                'order_id'        => $orderId,
+                'customer_name'   => $request->customer_name,
+                'customer_email'  => $request->customer_email,
+                'customer_phone'  => $request->customer_phone,
+                'total_price'     => 0,
+                'status'          => 'success',
+            ]);
+
+            // Kurangi stok
+            $event->decrement('stock');
+
+            // Langsung ke halaman sukses
+            return redirect()->route('checkout.success', $orderId);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | EVENT BERBAYAR
+    |--------------------------------------------------------------------------
+    */
+
+        $totalPrice = $event->price + 5000;
+
         $transaction = Transaction::create([
-            'event_id' => $event->id,
-            'order_id' => $orderId,
-            'customer_name' => $request->customer_name,
-            'customer_email' => $request->customer_email,
-            'customer_phone' => $request->customer_phone,
-            'total_price' => $totalPrice,
-            'status' => 'Pending', // Status Awal
+            'event_id'        => $event->id,
+            'organizer_id'    => $event->organizer_id,
+            'order_id'        => $orderId,
+            'customer_name'   => $request->customer_name,
+            'customer_email'  => $request->customer_email,
+            'customer_phone'  => $request->customer_phone,
+            'total_price'     => $totalPrice,
+            'status'          => 'Pending',
         ]);
 
-
-        // 5. Merekam Transaksi ke Database
-        // --- INTEGRASI SNAP MIDTRANS ---
-        // Konfigurasi Kredensial Environment Midtrans
         \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        \Midtrans\Config::$isProduction = false; // Mode Sandbox!
+        \Midtrans\Config::$isProduction = false;
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
-        // Susun Paket Array Data Transaksi
         $params = [
             'transaction_details' => [
                 'order_id' => $orderId,
@@ -72,21 +106,24 @@ class CheckoutController extends Controller
         ];
 
         try {
-            // Perintah Tembak Generate Snap Token
+
             $snapToken = \Midtrans\Snap::getSnapToken($params);
 
-            // Update rekaman kita bahwa transaksi terkait sudah memiliki id token pelunasan
-            $transaction->update(['snap_token' => $snapToken]);
+            $transaction->update([
+                'snap_token' => $snapToken
+            ]);
 
-            // Redirect ke halaman antarmuka pembayaran final pelanggan
-            return redirect()->route('checkout.payment', $transaction->order_id);
+            return redirect()->route(
+                'checkout.payment',
+                $transaction->order_id
+            );
         } catch (\Exception $e) {
-            return back()->with('error', 'Gagal memproses pembayaran jaringan: ' . $e->getMessage());
+
+            return back()->with(
+                'error',
+                'Gagal memproses pembayaran : ' . $e->getMessage()
+            );
         }
-
-
-        // 5. Redirect sementara
-        // return redirect('/');
     }
 
     public function payment($order_id)
@@ -100,27 +137,69 @@ class CheckoutController extends Controller
 
     public function success($order_id)
     {
-        // Mengambil daftar kategori untuk keperluan menu footer
         $categories = \App\Models\Category::all();
 
-        $transaction = Transaction::where('order_id', $order_id)->firstOrFail();
+        $transaction = Transaction::with('event')
+            ->where('order_id', $order_id)
+            ->firstOrFail();
 
-        // Validasi status pembayaran asli dari Midtrans (Mencegah manipulasi URL)
+        /*
+    |--------------------------------------------------------------------------
+    | Jika Event Gratis
+    |--------------------------------------------------------------------------
+    */
+
+        if ($transaction->total_price == 0) {
+
+            return view(
+                'checkout.success',
+                compact('transaction', 'categories')
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Event Berbayar
+    |--------------------------------------------------------------------------
+    */
+
         \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         \Midtrans\Config::$isProduction = false;
 
         try {
+
             $midtransStatus = \Midtrans\Transaction::status($order_id);
 
-            // Hanya ubah status menjadi sukses jika Midtrans mengonfirmasi pembayaran lunas
-            if (in_array($midtransStatus->transaction_status, ['capture', 'settlement'])) {
-                $transaction->update(['status' => 'success']);
+            if (
+                in_array(
+                    $midtransStatus->transaction_status,
+                    ['capture', 'settlement']
+                )
+            ) {
+
+                if ($transaction->status != 'success') {
+
+                    $transaction->update([
+                        'status' => 'success'
+                    ]);
+
+                    // stok dikurangi sekali saja
+                    $transaction->event->decrement('stock');
+                }
             }
         } catch (\Exception $e) {
-            // Jika error (transaksi tidak ada di Midtrans, koneksi terputus), kembalikan ke beranda
-            return redirect()->route('home')->with('error', 'Transaksi tidak ditemukan atau gagal diproses oleh sistem pembayaran.');
+
+            return redirect()
+                ->route('home')
+                ->with(
+                    'error',
+                    'Transaksi gagal diverifikasi.'
+                );
         }
 
-        return view('checkout.success', compact('transaction', 'categories'));
+        return view(
+            'checkout.success',
+            compact('transaction', 'categories')
+        );
     }
 }

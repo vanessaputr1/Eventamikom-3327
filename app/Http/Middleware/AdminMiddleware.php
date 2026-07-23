@@ -16,7 +16,6 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Cek apakah user sudah login dan adalah admin
         if (!Auth::check() || Auth::user()->role !== 'admin') {
             return redirect()->route('admin.login');
         }

@@ -36,16 +36,31 @@
             <a href="#" class="hover:text-indigo-600 transition">Kategori</a>
             <a href="#" class="hover:text-indigo-600 transition">Tentang Kami</a>
         </div>
-        <!-- <div class="flex gap-3">
-            <button class="px-5 py-2.5 rounded-xl font-semibold hover:bg-slate-200 transition">Login</button>
-            <button
-                class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition">Daftar</button>
-        </div> -->
+        <div class="flex gap-3">
+
+            @guest
+            <a href="{{ route('login') }}"
+                class="px-5 py-2.5 rounded-xl font-semibold hover:bg-slate-200 transition">
+                Login
+            </a>
+            @endguest
+
+            @auth
+            <form action="{{ route('user.logout') }}" method="POST">
+                @csrf
+                <button type="submit"
+                    class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition">
+                    Logout
+                </button>
+            </form>
+            @endauth
+
+        </div>
     </nav>
 
     <!-- Footer -->
     @yield('content')
-    
+
     <footer class="bg-indigo-900 text-indigo-100 py-20 px-6 mt-20">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
             <div class="space-y-4 col-span-2">

@@ -19,6 +19,7 @@ use App\Http\Controllers\Organizer\EventController as OrganizerEventController;
 use App\Http\Controllers\Organizer\TransactionController as OrganizerTransactionController;
 use App\Http\Controllers\Organizer\ReviewController as OrganizerReviewController;
 use App\Http\Controllers\Organizer\ProfileController as OrganizerProfileController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 /*
 |--------------------------------------------------------------------------
 | User Area
@@ -156,15 +157,17 @@ Route::group([
     Route::resource('events', AdminEventController::class);
 
     // Laporan Transaksi
-    Route::get('/transactions', [DashboardController::class, 'transactions'])
+    Route::get('/transactions', [AdminTransactionController::class, 'index'])
         ->name('transactions.index');
 
+    // Kelola Organizer
     Route::get('/organizers', [AdminOrganizerController::class, 'index'])
         ->name('organizers.index');
 
     Route::put('/organizers/{organizer}', [AdminOrganizerController::class, 'update'])
         ->name('organizers.update');
 
+    // Moderasi Review
     Route::get('/reviews', [AdminReviewController::class, 'index'])
         ->name('reviews.index');
 
